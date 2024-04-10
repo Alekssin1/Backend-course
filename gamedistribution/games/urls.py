@@ -1,15 +1,10 @@
-from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-from games import views
+from django.urls import path
+from games.views import AppRenderView, ShopView, ProductView, SearchView, HomeView
 
 urlpatterns = [
-    path('contact/', views.app_render, name="contact"),
-    path('shop/', views.shop, name="shop"),
-    path('search/', views.search_view, name='search'),
-    path('', views.home, name= "home"),
-    path('shop/<int:game_id>/', views.product, name= "product-details"),
+    path('contact/', AppRenderView.as_view(), name="contact"),
+    path('shop/', ShopView.as_view(), name="shop"),
+    path('search/', SearchView.as_view(), name='search'),
+    path('', HomeView.as_view(), name="home"),
+    path('shop/<int:game_id>/', ProductView.as_view(), name="product-details"),
 ]
-
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

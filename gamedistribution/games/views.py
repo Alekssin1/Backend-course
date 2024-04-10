@@ -1,63 +1,59 @@
-from random import choice
-from django.shortcuts import render, get_object_or_404
-from django.db.models import Min
-
+from django.shortcuts import render
+from django.views import View
 from mailing.forms import SubscribeForm
-from .models import Game, Genre
+from services.db_query_manager import DBQueryManager
 
-def app_render(request):
-    return render(request, "contact.html")
+class AppRenderView(View):
+    def get(self, request):
+        return render(request, "contact.html")
 
-def shop(request):
-    games = Game.objects.all()
-
-    genre_filter = request.GET.get('genre')
-    if genre_filter:
-        games = games.filter(genres__name=genre_filter)
-
-    genres = Genre.objects.all()
-
-    context = {
-        'games': games,
-        'genres': genres,
-        'selected_genre': genre_filter
-    }
-
-    return render(request, 'shop.html', context)
-
-
-def product(request, game_id):
-    game = get_object_or_404(Game, pk=game_id)
-    return render(request, "product-details.html", {'game': game})
-
-def search_view(request):
-    if request.method == 'POST':
-        search_keyword = request.POST.get('searchKeyword')
-        if search_keyword:
-            results = Game.objects.filter(title__icontains=search_keyword)
+class ShopView(View):
+    def get(self, request):
+        genre_filter = request.GET.get('genre')
+        if genre_filter:
+            games = DBQueryManager.get_games_by_genre(genre_filter)
         else:
-            results = None
+            games = DBQueryManager.get_all_games()
+
+        genres = DBQueryManager.get_all_genres()
+
+        context = {
+            'games': games,
+            'genres': genres,
+            'selected_genre': genre_filter
+        }
+
+        return render(request, 'shop.html', context)
+
+class ProductView(View):
+    def get(self, request, game_id):
+        game = DBQueryManager.get_game_by_id(game_id)
+        return render(request, "product-details.html", {'game': game})
+
+class SearchView(View):
+    def post(self, request):
+        search_keyword = request.POST.get('searchKeyword')
+        results = DBQueryManager.search_games_by_keyword(search_keyword)
         return render(request, 'search.html', {'results': results})
-    return render(request, 'search.html', {'results': None})
 
-def home(request):
-    genres_with_random_games = Genre.objects.annotate(
-        random_game_image=Min('games__image')
-    ).values('name', 'random_game_image')
+    def get(self, request):
+        return render(request, 'search.html', {'results': None})
 
-    random_discount_game = Game.objects.filter(discount_price__isnull=False).order_by('?').first()
-    discount_percentage = 100 * (random_discount_game.price - random_discount_game.discount_price) / random_discount_game.price
+class HomeView(View):
+    def get(self, request):
+        random_discount_game = DBQueryManager.get_random_discount_game()
+        discount_percentage = 100 * (random_discount_game.price - random_discount_game.discount_price) / random_discount_game.price
+        genres_with_random_games = DBQueryManager.get_genres_with_random_games()
+        most_popular_games = DBQueryManager.get_most_popular_games()
+        latest_games = DBQueryManager.get_latest_games()
+        form = SubscribeForm()
 
-    most_popular_games = Game.objects.order_by('-downloads')[:4]
-
-    latest_games = Game.objects.order_by('-id')[:4]
-    form = SubscribeForm()
-    context = {
-        'random_game': random_discount_game,
-        'discount_percentage': discount_percentage,
-        'genres_with_random_games': genres_with_random_games,
-        'most_popular_games': most_popular_games,
-        'latest_games': latest_games,
-        'form':form,
-    }
-    return render(request, "index.html", context)
+        context = {
+            'random_game': random_discount_game,
+            'discount_percentage': discount_percentage,
+            'genres_with_random_games': genres_with_random_games,
+            'most_popular_games': most_popular_games,
+            'latest_games': latest_games,
+            'form': form,
+        }
+        return render(request, "index.html", context)
