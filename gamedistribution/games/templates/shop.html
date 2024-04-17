@@ -43,8 +43,14 @@
       <div class="col-lg-3 col-md-6 align-self-center mb-30 trending-items col-md-6 {% for genre in game.genres.all %}{{ genre }} {% endfor %}">
         <div class="item">
           <div class="thumb">
-            <a href="#"><img src="{{ game.image.url }}" alt=""></a>
-            <span class="price"><em>${{ game.discount_price|default:game.price }}</em>${{ game.price }}</span>
+            <a href="{% url 'product-details' game.id %}"><img src="{{ game.image.url }}" alt=""></a>
+            <span class="price">
+              {% if game.discount_price %}
+                <em>${{ game.price }}</em>${{ game.discount_price }}
+              {% else %}
+                ${{ game.price }}
+              {% endif %}
+            </span>
           </div>
           <div class="down-content">
             {% for genre in game.genres.all %}

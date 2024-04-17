@@ -45,6 +45,7 @@ DJANGO_APPS = [
 LOCAL_APPS = [
     'games.apps.GamesConfig',
     'mailing.apps.MailingConfig',
+    'user.apps.UserConfig'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -78,7 +79,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'gamedistribution.wsgi.application'
-
+AUTH_USER_MODEL = "user.User"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -141,6 +142,25 @@ else:
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND')
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = bool(os.getenv('EMAIL_USE_TLS'))
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 HOST = "http://192.168.0.142"
 PORT = 8000

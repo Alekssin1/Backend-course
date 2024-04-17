@@ -1,8 +1,9 @@
 import os
 from django.db import models
-from django.contrib.auth.models import User
+
 from datetime import datetime
 
+from django.conf import settings
 from services.image_converter import ImageService
 
 class Genre(models.Model):
@@ -54,7 +55,7 @@ class Game(models.Model):
 
 class Review(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='reviews')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     comment = models.TextField()
     created_at = models.DateTimeField(default=datetime.now)
 
