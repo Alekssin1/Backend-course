@@ -23,16 +23,15 @@ class GameService:
     @staticmethod
     def update_game(instance, validated_data, tag_names, genre_names, developer_names, new_image):
         previous_image_url = instance.image.url if instance.image else None
-        print(previous_image_url)
+        print(validated_data)
         for key, value in validated_data.items():
             setattr(instance, key, value)
+
+        instance.save()
 
         if new_image:
             new_image_path = instance.image.path
             ImageService.convert_and_resize_image(new_image, new_image_path)
-
-            # instance.image.name = new_image.name
-            # print(new_image.name)
 
 
         if tag_names and tag_names!=[""]:
@@ -44,7 +43,5 @@ class GameService:
         if developer_names and developer_names!=[""]:
             developers = GameService._get_or_create_objects(developer_names, Developer)
             instance.developers.set(developers)
-
-        
 
         return instance
