@@ -1,9 +1,10 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
+from .services.convert_avatar import convert_image_to_webp
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None):
+    def create_user(self, email, password=None, **extra_fields):
         """
         Creates and saves a User with the given email and password.
         """
@@ -13,41 +14,40 @@ class UserManager(BaseUserManager):
             raise ValueError("Invalid password")
 
         user = self.model(
-            email=self.normalize_email(email),
+            email=self.normalize_email(email), 
+            **extra_fields
 
         )
-
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_staffuser(self, email, password):
+    def create_staffuser(self, email, password, **extra_fields):
         """
         Creates and saves a staff user with the given email and password.
         """
+        extra_fields.setdefault('is_staff', True)
         user = self.create_user(
             email,
             password=password,
+            **extra_fields
         )
-        user.staff = True
-        user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, password):
+    def create_superuser(self, email, password, **extra_fields):
         """
         Creates and saves a superuser with the given email and password.
         """
-
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('admin', True)
         user = self.create_user(
             email,
-            password=password
+            password=password, 
+            **extra_fields
         )
-        user.staff = True
-        user.admin = True
-        user.save(using=self._db)
         return user
 
-    
+
 
 class User(AbstractBaseUser):
 
@@ -59,18 +59,13 @@ class User(AbstractBaseUser):
     contact_number = models.CharField(max_length=50, blank=True)
 
     registration_date = models.DateTimeField(auto_now_add=True)
-    staff = models.BooleanField(default=False)  # can login
+    is_staff = models.BooleanField(default=False)  # can login
     admin = models.BooleanField(default=False)  # can login
 
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)  # Add this field
 
     USERNAME_FIELD = "email"
     objects = UserManager()
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.set_password(self.password)
-        super(User, self).save(*args, **kwargs)
 
     def __str__(self):  
         return self.email
@@ -80,7 +75,10 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+    
+    def save(self, *args, **kwargs):
+        # Перевірка наявності аватара
+        if self.avatar:
+            self.avatar = convert_image_to_webp(self.avatar)
+        super().save(*args, **kwargs)
 
-    @property
-    def is_staff(self):
-        return self.staff

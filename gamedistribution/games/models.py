@@ -4,7 +4,9 @@ from django.db import models
 from datetime import datetime
 
 from django.conf import settings
-from services.image_converter import ImageService
+
+from games.services.image_converter import ImageService
+
 
 class Genre(models.Model):
     name = models.CharField(max_length=100)
@@ -50,7 +52,7 @@ class Game(models.Model):
             ImageService.convert_and_resize_image(image_path, output_path)
             os.remove(image_path)
             self.image.name = 'media/game_images/' + os.path.basename(output_path)
-            super(Game, self).save(update_fields=['image'], *args, **kwargs)
+            super(Game, self).save(update_fields=['image'])
 
 
 class Review(models.Model):
