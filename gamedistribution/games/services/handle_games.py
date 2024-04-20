@@ -22,8 +22,6 @@ class GameService:
 
     @staticmethod
     def update_game(instance, validated_data, tag_names, genre_names, developer_names, new_image):
-        previous_image_url = instance.image.url if instance.image else None
-        print(validated_data)
         for key, value in validated_data.items():
             setattr(instance, key, value)
 
