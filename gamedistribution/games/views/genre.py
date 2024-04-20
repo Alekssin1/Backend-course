@@ -1,39 +1,20 @@
-from rest_framework import status
-from rest_framework.generics import (
-    ListAPIView,
-    RetrieveUpdateDestroyAPIView,
-    RetrieveUpdateAPIView,
-    ListCreateAPIView,
-    CreateAPIView,
-    DestroyAPIView,
-    RetrieveAPIView
-)
-from rest_framework.permissions import AllowAny, IsAdminUser
-from rest_framework.response import Response
-
+from games.views.base import ListView, RetrieveView, CreateView, RetrieveUpdateDestroyView
 from games.models import Genre
 from games.serializers.genre import GenreSerializer
 
-
-class GenreListApiView(ListAPIView):
-    permission_classes = [AllowAny]
-    queryset = Genre.objects.all()
+class GenreListApiView(ListView):
+    queryset = Genre.objects.prefetch_related('games')
     serializer_class = GenreSerializer
 
-
-class GenreRetrieveApiView(RetrieveAPIView):
-    permission_classes = [AllowAny]
-    queryset = Genre.objects.all()
+class GenreRetrieveApiView(RetrieveView):
+    queryset = Genre.objects.prefetch_related('games')
     serializer_class = GenreSerializer
 
-
-class GenreCreateAPIView(CreateAPIView):
-    queryset = Genre.objects.all()
+class GenreCreateAPIView(CreateView):
+    queryset = Genre.objects.prefetch_related('games')
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminUser]
-    
 
-class GenreRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAdminUser]
-    queryset = Genre.objects.all()
+class GenreRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyView):
+    queryset = Genre.objects.prefetch_related('games')
     serializer_class = GenreSerializer
+
