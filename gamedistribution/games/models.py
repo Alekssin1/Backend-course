@@ -31,7 +31,7 @@ class Tag(models.Model):
 
 class Game(models.Model):
     title = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='media/game_images/')
+    image = models.ImageField(upload_to='game_images/')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     description = models.TextField()
@@ -51,7 +51,7 @@ class Game(models.Model):
             output_path = os.path.splitext(image_path)[0] + '.webp'
             ImageService.convert_and_resize_image(image_path, output_path)
             os.remove(image_path)
-            self.image.name = 'media/game_images/' + os.path.basename(output_path)
+            self.image.name = 'game_images/' + os.path.basename(output_path)
             super(Game, self).save(update_fields=['image'])
 
 
@@ -65,5 +65,5 @@ class Review(models.Model):
         unique_together = ('game', 'user') 
 
     def __str__(self):
-        return f"Review for {self.game.title} by {self.user.username}"
+        return f"Review for {self.game.title} by {self.user.name}"
 

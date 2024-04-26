@@ -14,7 +14,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from .serializers import UserCreateSerializer, EmailSerializer, \
-    PasswordCodeValidateSerializer, PasswordSetSerializer, UserUpdateSerializer
+    PasswordCodeValidateSerializer, UserUpdateSerializer
 
 from .services import handle_user
 from helper.static_functions import get_errors_as_string
@@ -26,6 +26,10 @@ class UserCreateAPIView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     permission_classes = [AllowAny]
+    def perform_create(self, serializer):
+        user = serializer.save()
+        user.is_active = False 
+        user.save()
 
 
 class UserLoginAPIView(TokenObtainPairView):
@@ -90,24 +94,13 @@ class CodeValidateApiView(APIView):
             is_valid = int(real_code) == serializer.data['code']
             if is_valid:
                 redis_con.delete(serializer.data['email'])
+                user = User.objects.get(email=serializer.data['email'])
+                user.is_active = True
+                user.save()
 
             return Response({"valid": is_valid}, status=status.HTTP_200_OK)
 
         return Response("Okay", status=status.HTTP_200_OK)
-
-
-class PasswordSetApiView(APIView):
-
-    def post(self, request):
-        serializer = PasswordSetSerializer(data=request.data)
-        if serializer.is_valid():
-            user = handle_user.get_user_by_email(serializer.data['email'])
-            user.set_password(serializer.data['password'])
-            user.save()
-            return Response("Okay", status=status.HTTP_200_OK)
-
-        message = get_errors_as_string(serializer)
-        return Response({"message": message}, status=status.HTTP_403_FORBIDDEN)
 
 
 class EmailSendCodeView(APIView):

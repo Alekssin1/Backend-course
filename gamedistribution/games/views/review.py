@@ -46,4 +46,5 @@ class ReviewRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         instance = self.get_object()
         if not ReviewService.can_delete_review(instance, request.user):
             return Response({"error": "You are not allowed to delete this review"}, status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+        self.perform_destroy(instance)
+        return Response({"message": "Object successfully deleted."}, status=status.HTTP_200_OK)

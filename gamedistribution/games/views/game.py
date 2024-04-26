@@ -10,9 +10,9 @@ class GameListApiView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         search_term = self.request.query_params.get('search', '')
-        tags = self.request.query_params.getlist('tags')
-        developers = self.request.query_params.getlist('developers')
-        genres = self.request.query_params.getlist('genres')
+        tags = self.request.query_params.get('tags', '')
+        developers = self.request.query_params.get('developers', '')
+        genres = self.request.query_params.get('genres', '')
 
         filters = Q()
 
@@ -20,15 +20,18 @@ class GameListApiView(ListView):
             filters &= Q(title__icontains=search_term)
         
         if tags:
-            filters &= Q(tags__id__in=tags)
+            tag_ids = tags.split(',')
+            filters &= Q(tags__id__in=tag_ids)
 
         if developers:
-            filters &= Q(developers__id__in=developers)
+            developer_ids = developers.split(',')
+            filters &= Q(developers__id__in=developer_ids)
 
         if genres:
-            filters &= Q(genres__id__in=genres)
+            genre_ids = genres.split(',')
+            filters &= Q(genres__id__in=genre_ids)
 
-        queryset = queryset.filter(filters)
+        queryset = queryset.filter(filters).distinct()
 
         return queryset
 

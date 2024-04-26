@@ -55,14 +55,14 @@ class User(AbstractBaseUser):
     name = models.CharField(max_length=255, null=True)
     surname = models.CharField(max_length=255, null=True)
 
-    is_active = models.BooleanField(default=True)  # can login
+    is_active = models.BooleanField(default=True) 
     contact_number = models.CharField(max_length=50, blank=True)
 
     registration_date = models.DateTimeField(auto_now_add=True)
-    is_staff = models.BooleanField(default=False)  # can login
-    admin = models.BooleanField(default=False)  # can login
+    is_staff = models.BooleanField(default=False) 
+    admin = models.BooleanField(default=False)  
 
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)  # Add this field
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True) 
 
     USERNAME_FIELD = "email"
     objects = UserManager()
@@ -77,7 +77,6 @@ class User(AbstractBaseUser):
         return True
     
     def save(self, *args, **kwargs):
-        # Перевірка наявності аватара
         if self.avatar:
             self.avatar = convert_image_to_webp(self.avatar)
         super().save(*args, **kwargs)

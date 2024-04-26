@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from user.models import User
 from games.models import Genre, Developer, Tag, Game, Review
 from faker import Faker
 import os
@@ -7,10 +8,10 @@ import random
 fake = Faker()
 
 class Command(BaseCommand):
-    help = 'Seed the database with fake data'
-
+    help = 'Seed the database with fake games'
+    
     def handle(self, *args, **kwargs):
-        self.stdout.write("Seeding the database with fake data...")
+        self.stdout.write("Seeding the database with fake games..")
 
         # Predefined list of genres
         genres = ['Action', 'Adventure', 'Role-Playing', 'Strategy', 'Simulation', 'Sports', 'Puzzle', 'Racing', 'Fighting', 'Horror']
@@ -27,13 +28,13 @@ class Command(BaseCommand):
         for _ in range(10):
             Tag.objects.create(name=fake.word())
 
-        image_directory = 'games\management\images'
+        image_directory = 'games/management/images'
         
         # Create a dictionary to keep track of how many times each image has been used
         image_usage_count = {image_filename: 0 for image_filename in os.listdir(image_directory)}
 
         # Generate games
-        for _ in range(10):
+        for _ in range(30):
             image_filename = min(image_usage_count, key=image_usage_count.get)
             image_usage_count[image_filename] += 1
             game = Game(
@@ -59,19 +60,18 @@ class Command(BaseCommand):
                 genre, _ = Genre.objects.get_or_create(name=genre_name)
                 game.genres.add(genre)
 
+            users = User.objects.order_by('?')[:random.randint(2, 7)]
+
+            # Generate reviews for the game
+            for user in users:
+                Review.objects.create(
+                    game=game,
+                    user=user,
+                    comment=fake.paragraph()
+                )
+
             # Assign random image to the game
             image_path = os.path.join(image_directory, image_filename)
             game.image.save(image_filename, open(image_path, 'rb'), save=True)
 
-        self.stdout.write(self.style.SUCCESS("Fake data seeding completed successfully!"))
-
-
-        # Generate reviews
-        # for _ in range(10):
-        #     game = Game.objects.order_by('?').first()
-        #     Review.objects.create(
-        #         game=game,
-        #         user=fake.user_name(),
-        #         comment=fake.paragraph(),
-        #         created_at=fake.date_time_this_decade()
-        #     )
+        self.stdout.write(self.style.SUCCESS("Fake data for games seeding completed successfully!"))
